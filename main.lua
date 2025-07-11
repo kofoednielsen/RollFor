@@ -753,12 +753,10 @@ local function plus_ones_command( args )
   if args == "" then
     local plus_ones_exist = false
     for _, player in ipairs(players) do
-      local plus_ones = getn(m.filter(M.awarded_loot.get_winners(), (function (a) 
-            return a ~= nil and a.player_name == player.name and a.roll_type == RollType.MainSpec
-          end)))
+      local ms_loot_player = m.filter(M.awarded_loot.get_winners(),(function (a) return a ~= nil and a.player_name == player.name and a.roll_type == RollType.MainSpec end))
+      local plus_ones = getn(ms_loot_player)
       if plus_ones > 0 then
         plus_ones_exist = true
-        local ms_loot_player = m.filter(M.awarded_loot.get_winners(),(function (a) return a ~= nil and a.player_name == player.name and a.roll_type == RollType.MainSpec end))
         local item_list = table.concat(m.map(ms_loot_player, (function (a) return a.item_link end)), " ")
         local player_name = m.colorize_player_by_class( player.name, player.class ) or grey( player.name )
         M.chat.info( player_name .. green(" MS +" .. plus_ones ).. ": " .. item_list)
