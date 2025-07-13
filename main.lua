@@ -276,8 +276,7 @@ local function create_components()
   )
 
   ---@type LootAwardCallback
-  M.loot_award_callback = m.LootAwardCallback.new( M.awarded_loot, M.roll_controller, M.winner_tracker, M.group_roster, M.softres )
-
+  M.loot_award_callback = m.LootAwardCallback.new( M.awarded_loot, M.roll_controller, M.winner_tracker, M.group_roster, M.softres, M.confirm_popup, M.config)
   ---@type MasterLoot
   M.master_loot = m.MasterLoot.new(
     M.master_loot_candidates,
@@ -744,22 +743,31 @@ end
 
 local function plus_ones_command( args )
   local function print_usage()
-    M.chat.info(string.format( "%s - %s", hl( "/pl" ), white( "List plus ones" ) ) )
+    M.chat.info(string.format( "%s - %s", hl( "/pl" ), white( "List +1's" ) ) )
     M.chat.info(string.format( "%s %s %s - %s", hl( "/pl add " ), grey( "<player>" ), grey( "<item>" ), white( "Add item to players +1's" ) ) )
     M.chat.info(string.format( "%s %s %s - %s", hl( "/pl rm" ), grey( "<player>" ), grey( "<item>" ), white( "Remove item from players +1's" ) ) )
   end
-  local players = M.group_roster.get_all_players_in_my_group()
+  local loot = M.awarded_loot.get_winners()
+  local players = {}
+  for _, award in ipairs(loot) do
+    if award ~= nil then
+      if not players[award.player_name] then
+            players[award.player_name] = { award }
+      else
+        table.insert(players[award.player_name], award)
+      end
+    end
+  end
 
   if args == "" then
     local plus_ones_exist = false
-    for _, player in ipairs(players) do
-      local ms_loot_player = m.filter(M.awarded_loot.get_winners(),(function (a) return a ~= nil and a.player_name == player.name and a.roll_type == RollType.MainSpec end))
-      local plus_ones = getn(ms_loot_player)
-      if plus_ones > 0 then
+    for player_name, awards in pairs(players) do
+      local plus_ones = m.filter(awards, (function(a) return a.plus_one end))
+      if getn(plus_ones) > 0 then
         plus_ones_exist = true
-        local item_list = table.concat(m.map(ms_loot_player, (function (a) return a.item_link end)), " ")
-        local player_name = m.colorize_player_by_class( player.name, player.class ) or grey( player.name )
-        M.chat.info( player_name .. green(" MS +" .. plus_ones ).. ": " .. item_list)
+        local item_list = table.concat(m.map(plus_ones, (function (a) return a.item_link end)), " ")
+        local colored_player_name = m.colorize_player_by_class( player_name, awards[1].player_class ) or grey( player_name )
+        M.chat.info( colored_player_name .. green(" MS +" .. getn(plus_ones)) .. ": " .. item_list)
       end
     end
     if not plus_ones_exist then
@@ -768,7 +776,8 @@ local function plus_ones_command( args )
   else
     local action, player_name, item_link = string.match(args, "^(%S+) (%S+) (|%w+|Hitem.+|r)$")
     local item_id = item_link and M.item_utils.get_item_id( item_link )
-    local player = player_name and m.filter(players, (function (p) return string.lower(p.name) == string.lower(player_name) end))[1]
+    local group_players = M.group_roster.get_all_players_in_my_group()
+    local player = player_name and m.filter(group_players, (function (p) return string.lower(p.name) == string.lower(player_name) end))[1]
     if action == nil and player_name == nil and item_link == nil then
       M.chat.info(red("Invalid usage"))
       print_usage()
@@ -776,7 +785,7 @@ local function plus_ones_command( args )
       M.chat.info(red("Invalid action"))
       print_usage()
     elseif (player == nil) then
-      M.chat.info(red("Player not found"))
+      M.chat.info(red("Player not found in group"))
       print_usage()
     elseif item_link == nil or item_id == nil then
       M.chat.info(red("Invalid item"))
@@ -784,7 +793,7 @@ local function plus_ones_command( args )
     elseif action == "add" then
       M.chat.info("Gave " .. (m.colorize_player_by_class( player.name, player.class ) or m.colors.grey( player.name )) .. " a +1 for " .. item_link )
       local roll_data = { player_name = player.name, player_class = player.class, roll_type = RollType.MainSpec, roll = 0, plus_ones = 0 }
-      M.awarded_loot.award( player.name, item_id, roll_data, RollingStrategy.NormalRoll, item_link, player.class, nil )
+      M.awarded_loot.award( player.name, item_id, roll_data, RollingStrategy.NormalRoll, item_link, player.class, nil, true)
     elseif action == "rm" or action == "remove" then
       if M.awarded_loot.has_item_been_awarded( player.name, item_id ) then
         M.unaward_item( player.name, item_id, item_link )

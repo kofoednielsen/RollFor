@@ -59,7 +59,7 @@ function M.new(
       local plus_ones = 0
       if config.plus_ones() then
         plus_ones = getn(m.filter(awarded_loot.get_winners(), (function (p) 
-          return p ~= nil and p.player_name == player.name and p.roll_type == RollType.MainSpec
+          return p ~= nil and p.player_name == player.name and p.plus_one
         end)))
       end
       return make_rolling_player( player.name, player.class, player.online, 1, plus_ones )
