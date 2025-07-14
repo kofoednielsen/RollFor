@@ -52,9 +52,8 @@ local top_padding = 11
 ---@field transform fun( data: RollingPopupData ): table
 
 ---@param config Config
----@param awarded_loot AwardedLoot
 ---@diagnostic disable-next-line: unused-local
-function M.new( config, awarded_loot )
+function M.new( config )
   ---@param on_click fun()
   local function award_winner_button( on_click )
     return { type = "award_button", label = "Award", width = 90, on_click = on_click, padding = 6 }

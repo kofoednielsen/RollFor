@@ -251,7 +251,7 @@ function M.new( item_on_roll )
     } )
 
     for _, player in ipairs( players or {} ) do
-      add( player.name, player.class, roll_type, player.plus_ones )
+      add( player.name, player.class, roll_type, nil, player.plus_ones )
     end
   end
 
