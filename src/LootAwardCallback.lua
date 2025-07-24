@@ -73,15 +73,12 @@ function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, sof
 
     if config.handle_plus_ones() and roll_data ~= nil and roll_data.roll_type == RollType.MainSpec then
       if config.plus_one_prompt() then
-        print("POPUP")
         local colorized_player_name = m.colorize_player_by_class(player_name, player_class or class) or m.colors.grey( player_name )
         confirm_popup.show( { "Should " .. colorized_player_name .. " get a +1 for " .. item_link .. "?" }, on_confirm_plus_one)
       else
-        print("NO POPUP")
         on_confirm_plus_one(true)
       end
     else
-      print("Handling is off!")
       on_confirm_plus_one(false)
     end
   end

@@ -236,7 +236,7 @@ local function create_components()
   local rolling_popup_db = db( "rolling_popup" )
 
   ---@type RollingPopupContentTransformer
-  local rolling_popup_content_transformer = m.RollingPopupContentTransformer.new( M.config, M.awarded_loot )
+  local rolling_popup_content_transformer = m.RollingPopupContentTransformer.new( M.config )
 
   ---@type RollingPopup
   M.rolling_popup = m.RollingPopup.new(
