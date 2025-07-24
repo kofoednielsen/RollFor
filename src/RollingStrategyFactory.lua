@@ -57,7 +57,7 @@ function M.new(
     local players = group_roster.get_all_players_in_my_group()
     local rollers = m.map( players, function( player )
       local plus_ones = 0
-      if config.plus_ones() then
+      if config.handle_plus_ones() then
         plus_ones = getn(m.filter(awarded_loot.get_winners(), (function (p) 
           return p ~= nil and p.player_name == player.name and p.plus_one
         end)))
